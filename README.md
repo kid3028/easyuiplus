@@ -12,6 +12,6 @@ demo主要使用了datagrid、dialog、tree。
 - 2、提供双击展开父节点
 - 3、如果节点有url，那么可以通过单击节点向center面板添加对应的tabs  
 
-demo没还没进行权限管理，使用admin/123456即可完整登录，关于权限管里可以参照仓库templates。  
+demo没还没进行权限管理，使用admin/123456即可完成登录，关于权限管里可以参照仓库templates。  
   
 更多关于EasyUI的将会在后续时间补充。
