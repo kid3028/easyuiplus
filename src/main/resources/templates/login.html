@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <script src="../static/easyui/jquery.min.js"></script>
+    <script src="../static/easyui/jquery.easyui.min.js"></script>
+    <script src="../static/easyui/jquery.cookie.js"></script>
+    <link rel="stylesheet" href="../static/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" href="../static/easyui/themes/icon.css">
+    <script src="../static/easyui/locale/easyui-lang-zh_CN.js"></script>
+    <style type="text/css">
+        .dialog-button, .panel-header{
+            padding: 5px; text-align: center;
+        }
+
+        #loginForm {
+
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="loginDialog" title="用户登录" style="width: 250px; height: 150px; position:relative;" >
+        <form id="loginForm" method="post" style="position:absolute;left:20px; top:15px;">
+            <table style="margin: 0 auto; ">
+                <tr>
+                    <th>用户名</th>
+
+                    <!--class="easyui-textbox" 添加这个class之后，回车键提交菜单将无效  真正的input输入框被隐藏， type属性为hidden-->
+                    <th><input name="userName" iconCls="icon-man" class="easyui-validatebox easyui-textbox" required="true" placeholder="请输入用户名"/></th>
+                </tr>
+                <tr>
+                    <th>密码</th>
+                    <!--class="easyui-passwordbox"-->
+                    <th><input name="password"  iconCls="icon-lock" class="easyui-validatebox easyui-passwordbox" required="true" placeholder="请输入密码"/></th>
+                </tr>
+            </table>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        var loginDialog;
+        var loginForm;
+        loginDialog = $("#loginDialog").dialog({
+            closable : false,
+            modal : false,
+            buttons: [
+                {
+                    id : "loginBtn",
+                    text : "登录",
+                    iconCls : "icon-ok",
+                    handler : function () {
+                        loginForm.submit();
+                    }
+                },
+                {
+                    id : "clearBtn",
+                    text : "清空",
+                    iconCls : "icon-cancel",
+                    handler : function () {
+                        loginForm.form("clear");
+                        $.messager.show({title : "提示", msg : "已清空!"});
+                    }
+                }
+            ]
+        });
+
+        loginForm = $("#loginForm").form({
+            url : "user/login",
+            // dataType : "json",       // 无效
+            success : function (data) {                 // 返回值是字符串
+                // console.info(data);                  // 字符串
+                // console.info($.parseJSON(data));     // 对象
+                if($.parseJSON(data)){
+                    $.messager.show({title : "提示", msg : "登录成功"});
+                    loginDialog.dialog("destroy");
+                    window.location.href="/main";
+                } else {
+                    $.messager.alert({title : "错误", msg : "用户名或密码错误", icon : "error"});
+                }
+            }
+
+        });
+
+        /**
+         *  增加回车提交功能  find / on :jquery函数 find---选中所有的指定标签   on绑定事件  也可以使用bind
+         *  敲击回车之后获取到所有的指定标签，并循环validate，如果有没有满足validate的，则将光标移动到该处，都满足要求则开始提交
+         */
+        // loginForm.find("input").on("keyup", function (event) {       // 可以实现回车键切换输入框，但是如果input使用了textbox passwordbox之类的控件，那么这个属性将会失效
+        loginForm.on("keyup", function (event) {                       // 只有填完所有的数据在按回车才能实现
+            if(event.keyCode == "13") {
+                loginForm.submit();
+            }
+        });
+
+
+
+
+    </script>
+</body>
+</html>

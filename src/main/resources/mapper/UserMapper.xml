@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyui.dao.UserMapper">
+  <resultMap id="BaseResultMap" type="com.easyui.entity.User">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="user_name" jdbcType="VARCHAR" property="userName" />
+    <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="modified_time" jdbcType="TIMESTAMP" property="modifiedTime" />
+  </resultMap>
+
+  <select id="getUsers" parameterType="userPO" resultMap="BaseResultMap">
+    select id, user_name, nick_name, password, create_time, modified_time
+    from user
+    <where>
+      <if test="userName != null and  userName != '' ">
+        and user_name like concat('%', #{userName}, '%')
+      </if>
+
+      <if test="nickName != null and nickName != ''  ">
+        and nick_name like concat('%', #{nickName}, '%')
+      </if>
+
+      <if test="createTimeStart != null and createTimeStart != '' ">
+        and create_time <![CDATA[   >=  ]]> #{createTimeStart}
+      </if>
+
+      <if test="createTimeEnd != null and createTimeEnd != '' ">
+        and create_time <![CDATA[   <=  ]]> #{createTimeEnd}
+      </if>
+
+      <if test="modifiedTimeStart != null and modifiedTimeStart != '' ">
+        and modified_time <![CDATA[ >= ]]]> #{modifiedTimeStart}
+      </if>
+
+      <if test="modifiedTimeEnd != null and modifiedTimeEnd != '' ">
+        and modified_time <![CDATA[ <= ]]> #{modifiedTimeEnd}
+      </if>
+    </where>
+
+      order by
+      <choose>
+        <when test="sort != null and sort != '' and sort == 'userName'" >
+          user_name
+        </when>
+        <when test="sort != null and sort != '' and sort == 'password'" >
+          password
+        </when>
+        <when test="sort != null and sort != '' and sort == 'createTime'" >
+          create_time
+        </when>
+        <when test="sort != null and sort != '' and sort == 'modifiedTime'" >
+          modified_time
+        </when>
+        <when test="sort != null and sort != '' and sort == 'id'" >
+          id
+        </when>
+        <otherwise>
+          id
+        </otherwise>
+      </choose>
+
+      <choose>
+        <when test="order != null and order != ''">
+          ${order}
+        </when>
+        <otherwise>
+          desc
+        </otherwise>
+      </choose>
+  </select>
+  
+  
+  <delete id="deleteById">
+    delete from user where id in
+    <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+      #{item}
+    </foreach>
+  </delete>
+  
+
+</mapper>

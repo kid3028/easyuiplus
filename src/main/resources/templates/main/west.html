@@ -1,0 +1,40 @@
+<body>
+<ul id="menu"></ul>
+<script type="text/javascript">
+    var tree;
+    tree = $("#menu").tree({
+        url : "/menu/getMenuByPid",
+        lines : true,               // 添加线 默认false，不显示
+        checkbox : true,            // 添加复选框 默认false，不显示
+        cascadeCheck : false,        // 使用级联   默认true，进行级联
+        dnd : true,                 //  是否可以拖拽。默认是false，不可拖拽
+        onDblClick : function (node) {
+            if(node.state == "closed") {
+                $(this).tree("expand", node.target);
+            }else {
+                $(this).tree("collapse", node.target);
+            }
+        },
+        onClick : function (node) {
+            if(node.url != null && node.url != '') {
+                addTab(node.text, node.url);
+            }
+        },
+        // 加载完就展开tree
+        onLoadSuccess : function (node, data) {         // 数据加载成功后出发事件   ----- 可以添加初始化默认选中
+            var t = $(this);         // this当前树
+            console.info(data);       // data当前节点的值
+            // console.info(node);
+            if(data) {
+                $(data).each(function (index, item) {
+                    if(this.state == "closed") {
+                        console.info("expand");
+                        t.tree("expandAll");
+                    }
+                })
+            }
+        }
+
+    });
+</script>
+</body>

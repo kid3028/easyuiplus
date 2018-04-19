@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Center</title>
+    <link rel="stylesheet" href="../../static/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" href="../../static/easyui/themes/icon.css">
+    <script src="../../static/easyui/jquery.min.js"></script>
+    <script src="../../static/easyui/jquery.easyui.min.js"></script>
+    <script src="../../static/easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="../../static/easyui/jquery.cookie.js"></script>
+    <script src="../../static/easyui/main/main.js"></script>
+</head>
+<body>
+<div class="easyui-layout" fit="true">
+    <div region="north" border="false" title="过滤" style="height: 150px; overflow: hidden;">
+        <form id="userSearchForm">
+            <table class="datagrid-toolbar" >
+                <tr>
+                    <th>用户名</th>
+                    <td><input type="text" id="userName" name="userName"/></td>
+                </tr>
+                <tr>
+                    <th>创建时间</th>
+                    <td><input type="text" id="createTimeStart" name="createTimeStart" class="easyui-datetimebox" editable="false" style="width: 150px"/>至<input type="text" id="createTimeEnd" name="createTimeEnd" class="easyui-datetimebox" editable="false" style="width: 150px"/></td>
+                </tr>
+                <tr>
+                    <th>修改时间</th>
+                    <!-- 添加editable属性禁止输入-->
+                    <td><input type="text" id="modifiedTimeStart" name="modifiedTimeStart" class="easyui-datetimebox" editable="false" style="width: 150px"/>至<input type="text" id="modifiedTimeEnd" name="modifiedTimeEnd" class="easyui-datetimebox" editable="false" style="width: 150px"/></td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <a href="javascript:;" class="easyui-linkbutton" onclick="searchUser()">查询</a>
+                    </td>
+                    <td>
+                        <a href="javascript:;" class="easyui-linkbutton" onclick="clearUser()">清空</a>
+                    </td>
+                </tr>
+            </table>
+        </form>
+
+    </div>
+    <div region="center" border="false">
+        <table id="dataGrid"></table>
+    </div>
+</div>
+<div id="rowMenu" class="easyui-menu" style="width : 120px;display: none;">
+    <div onclick="append()" iconCls="icon-add">增加</div>
+    <div onclick="remove()" iconCls="icon-remove">删除</div>
+    <div onclick="edit()" iconCls="icon-edit">编辑</div>
+</div>
+
+<script type="text/javascript">
+    var dataGrid;
+    var editRow = undefined;        // 存储正在被编辑的行的索引
+    var userSearchForm = $("#userSearchForm");
+
+    dataGrid = $("#dataGrid").datagrid({
+        url : "http://localhost:8080/user/userInfo",
+        title : "用户列表",                 // 表格的标题
+        iconCls : "icon-save",
+        pagination : true,                  // 分页工具条
+        pageSize : 10,                      // 每页显示条数
+        pageList : [10, 20, 30, 40, 50],    // pageList 将会控制pageSize，以pageList为主
+        fit : true,                        //  进行自适应 dataGrid 宽高与tabs宽高进行自适应
+        fitColumns : false,                 // 列进行自适应，每个列的宽度之和刚好占满空间，不会在列上出现滚动条，如果想要出现滚动条，属性设置为false，在列不是很多的时候，可以使用true
+        nowrap : false,                     // 列内容是否换行显示，true时不进行换行， false进行换行
+        border : false,                     // 边框
+        idField : "id",                     // 记录标识，相当于主键，当该条记录被选中后，无论如何进行翻页，依然可以保持选中。如果没有该属性4，那么不会记录选中的记录
+        sortName : "id",                    // 指定默认初始排序字段
+        sortOrder : "asc",                 // 排序方式
+        striped : true,                     // 斑马线
+        // singleSelect : true,             // 允许只选中单行记录
+        toolbar : [
+            {
+                text : "增加",
+                iconCls : "icon-add",
+                handler : function () {
+                    append();
+                }
+            },
+            {
+                text : "删除",
+                iconCls : "icon-remove",
+                handler : function () {
+                    remove();
+                }
+            },
+            {
+                text : "修改",
+                iconCls : "icon-edit",
+                handler : function () {
+                    edit();
+                }
+            },
+            {
+                text : "保存",
+                iconCls : "icon-save",
+                handler : function () {
+                    dataGrid.datagrid("endEdit", editRow);
+                }
+            },
+            {
+                text : "取消编辑",
+                iconCls : "icon-redo",
+                handler : function () {
+                    editRow = undefined;
+                    dataGrid.datagrid("rejectChanges");
+                    dataGrid.datagrid("unselectAll");
+
+                }
+            },
+            {
+                text : "取消选中",
+                iconCls : "icon-undo",
+                handler : function () {
+                    dataGrid.datagrid("unselectAll");
+                }
+            },
+            {
+                text : "清空数据",
+                iconCls : "icon-undo",
+                handler : function () {
+                    dataGrid.datagrid("loadData", []);
+                }
+            }
+        ],
+        // rowStyler : function(rowIndex, rowDate) {
+        //     if(rowDate.userName == "admin") {   //行指定样式
+        //         return "";
+        //     }else if(rowIndex % 2 == 0) {
+        //         return "background:red";
+        //     } else {
+        //         return "background:pink";
+        //     }
+        // },
+        // 添加冻结列  冻结列不会改变长宽，使用冻结列，需要将fitColumns属性设置为false
+        frozenColumns : [[
+            {
+                title : "编号",
+                field : "id",
+                width : 100,        //必须有，最好大于50
+                sortable : true,
+                checkbox : true
+            },
+            {
+                title : "账户",
+                field : "userName",
+                width : 100,
+                sortable : true,     // 添加该列属性，可以通过点击列标记，向服务器按照排序规则重新进行排序
+                editor : {                  // 将列设为editor
+                    type : "validatebox",
+                    options : {
+                        required : true
+                    }
+                },
+                styler : function (value, rowData, rowIndex) {  // 列指定样式
+                    if (value == "admin") {
+                        return "";
+                    } else {
+                        return "background : yellow";
+                    }
+                },
+                align : "center"                // column的属性将会影响到对应的标题
+            }
+        ]
+        ],
+        columns:[                           // 支持多级表头
+            [
+                {
+                    title : "昵称",
+                    field : "nickName",
+                    width : 100,
+                    sortable : true,
+                    editor : {
+                        type : "validatebox",
+                        options : {
+                            required : true
+                        }
+                    },
+                    align : "center"
+                },
+                {
+                    title : "密码",
+                    field : "password",
+                    width : 100,
+                    sortable : true,
+                    editor : {
+                        type : "validatebox",
+                        options : {
+                            required : true
+                        }
+                    },
+                    formatter : function (value, rowData, rowIndex) {       // formatter一定要有返回值，返回字符串，当前单元格将会变成返回值
+                        // 通过格式化将密码变为密文
+                        return "******";
+                    },
+                    align : "center"
+                },
+                {
+                    title : "创建时间",
+                    field : "createTime",
+                    width : 100,
+                    sortable : true,
+                    editor : {
+                        type : "datetimebox",
+                        options : {
+                            editable : false
+                        }
+                    },
+                    formatter : function (value, rowData, rowIndex) {
+                        if(value) {
+                            // console.info(value);
+                            value = dateFormat(value);
+                            // 显示提示框
+                            return "<span title='" + value + "'>" + value + "</span>";
+                        }else {
+                            return "";
+                        }
+                    },
+                    align : "center"
+                },
+                {
+                    title : "修改时间",
+                    field : "modifiedTime",
+                    width : 100,
+                    sortable : true,
+                    editor : {
+                        type : "datetimebox",
+                        options : {
+                            editable : false
+                        }
+                    },
+                    formatter : function (value, rowData, rowIndex) {
+                        if(value) {
+                            return dateFormat(value);
+                        }else {
+                            return "";
+                        }
+                    },
+                    align : "center"
+
+                }
+            ]
+        ],
+        onAfterEdit : function (rowIndex, rowData, changes) {
+            // rowIndex rowDate changes最后一条结束编辑的数据
+            console.info(rowIndex);
+            console.info(rowData);
+            // changes 只包含被编辑的数据
+            console.info(changes);
+            // 异步提交数据
+            var inserted = dataGrid.datagrid("getChanges", "inserted");
+            var updated = dataGrid.datagrid("getChanges", "updated");
+            var url = "";
+            if(inserted.length > 0) {
+                url = "addUser";
+            }
+
+            if(updated.length > 0) {
+                url = "modifiedUser";
+            }
+
+            $.ajax({
+                url : url,
+                data : rowData,
+                datatype : "json",
+                success : function (data) {
+                    console.info(data);
+                    if(data == null || data == "" || data == -1) {
+                        $.messager.alert("提示", "修改失败", "error");
+                        dataGrid.datagrid("rejectChanges");
+                    } else {
+                        $.messager.show({title : "提示", msg : "成功修改数据" + data + "行"});
+                        dataGrid.datagrid("acceptChanges");
+                        dataGrid.datagrid("reload", {});
+                    }
+
+                    editRow = undefined;
+                    dataGrid.datagrid("unselectAll");
+                }
+
+            });
+
+
+        },
+        onDblClickRow : function (rowIndex, rowData) {
+            if (editRow != undefined) {
+                console.info("一次只能编辑一行编辑");
+                // dataGrid.datagrid("endEdit", editRow);
+                $.messager.show({title: "提示", msg: "一次只能编辑一行数据"});
+                return;
+            }
+
+            if (editRow == undefined) {
+                changeEditorEditRow();
+                dataGrid.datagrid("beginEdit", rowIndex);
+                editRow = rowIndex;
+                // dataGrid.datagrid("unselectAll");
+            }
+
+        },
+        // 右键行菜单  解决问题一：如何阻止浏览器右键默认事件
+        onRowContextMenu : function(e, rowIndex, rowData) {
+            // console.info(e);
+            // console.info(rowIndex);
+            // console.info(rowData);
+            if(rowIndex >= 0 && rowData != null) {
+                e.preventDefault();     // 阻止浏览器默认事件
+
+                $(this).datagrid("unselectAll");
+                $(this).datagrid("selectRow", rowIndex);
+                $("#rowMenu").menu("show", {
+                    left : e.pageX,
+                    top : e.pageY
+                });
+            }
+
+
+        }
+        // toolbar : "#toolbar"
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>main</title>
+    <link rel="stylesheet" href="../../static/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" href="../../static/easyui/themes/icon.css">
+    <script src="../../static/easyui/jquery.min.js"></script>
+    <script src="../../static/easyui/jquery.easyui.min.js"></script>
+    <script src="../../static/easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script src="../../static/easyui/jquery.cookie.js"></script>
+    <script src="../../static/easyui/main/main.js"></script>
+</head>
+<body>
+
+<div id="main" class="easyui-layout" fit="true">
+    <div data-options="region:'north',title : '欢迎使用本系统',split:true" style="height:100px;">欢迎使用EasyUI教学系统</div>
+    <div data-options="region:'west',title:'菜单',split:true" style="width:200px;" href="/menu"></div>
+    <div data-options="region:'center'">
+        <div id="tabs" class="easyui-tabs" fit="true">
+            <div title="Home">
+                课程大纲
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
